@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>戳戳樂</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #grid { display: grid; grid-template-columns: repeat(10, 40px); gap: 5px; margin-top: 20px; }
+    .cell {
+      width: 40px; height: 40px; background: #eee; display: flex;
+      align-items: center; justify-content: center; cursor: pointer;
+      border: 1px solid #aaa;
+    }
+    .used { background: #888; color: white; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<h2>登入</h2>
+<input id="playerName" placeholder="名字"><br><br>
+<input id="playerId" placeholder="ID"><br><br>
+<button onclick="login()">登入</button>
+
+<div id="msg"></div>
+<div id="grid"></div>
+
+<script>
+let GAS_URL = "<<<你的 GAS 網址貼在這裡>>>";
+
+let playerName = "";
+let playerId = "";
+
+async function login() {
+  playerName = document.getElementById("playerName").value;
+  playerId = document.getElementById("playerId").value;
+
+  let res = await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "login", name: playerName, id: playerId })
+  });
+
+  let data = await res.json();
+
+  if (data.error) {
+    document.getElementById("msg").innerText = data.error;
+    return;
+  }
+
+  document.getElementById("msg").innerText = "登入成功，請選一個洞！";
+  renderGrid(data.used);
+}
+
+function renderGrid(usedList) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  for (let i = 1; i <= 100; i++) {
+    let cell = document.createElement("div");
+    cell.className = "cell";
+    cell.innerText = i;
+
+    if (usedList.includes(i)) {
+      cell.classList.add("used");
+    } else {
+      cell.onclick = () => pick(i);
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+async function pick(num) {
+  let res = await fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "pick",
+      name: playerName,
+      id: playerId,
+      box: num
+    })
+  });
+
+  let data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  alert("你抽到：" + data.prize);
+  renderGrid(data.used);
+}
+</script>
+
+</body>
+</html>
