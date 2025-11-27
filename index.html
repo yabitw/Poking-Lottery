@@ -36,6 +36,7 @@ async function login() {
 
   let res = await fetch(GAS_URL, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "login", name: playerName, id: playerId })
   });
 
